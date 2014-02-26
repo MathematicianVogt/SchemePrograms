@@ -70,33 +70,34 @@
 ; (= (arg2 (make-sum 2 3)) 3)
 ; (= (arg2 (make-product 2 3)) 3)
 
-;;; derivative code
-
-;deriv: ArithExp * VarExp -> ArithExp
 
 
 
-
-(define (deriv exp var)
-  (cond ((number? exp) 0)
-        ((variable? exp)
-         (if (variable=? exp var) 1 0))
-        ((sum? exp) 
-         (make-sum (deriv (arg1 exp) var)
-                   (deriv (arg2 exp) var)))
-        ((product? exp)
-         (make-sum (make-product (arg1 exp) (deriv (arg2 exp) var))
-                   (make-product (arg2 exp) (deriv (arg1 exp) var))))
-        ((expt? exp) )
-        (else (error 'deriv "Unexpected Input, not an ArithExp"))))
-
-  (deriv '(* 5 x) 'x)
 ;make-expr: arithExp * natutalNumber -> arithExp
 (define (make-expt e n) (cons '^ (append (list e) (list n))))
 (make-expt '(* x 5) 2)
 ;expt? arthimExp-> Bool a function to see if a arthimac expression is in a correct form
 (define (expt? e) (and (pair? e) (eq? (car e) '^)))
 ;make-expt arithExp->arithExp takes a power function and differentiates it. 
-(define (make-exptDev L )(if(or (number? (car L)) (number? (car(cdr L)))) (list 0) (if(= (arg2 L) 0) (list 0) (if(= (arg2 L) 1) (list (arg1 L)) (list '*  (arg2 L) (list '^ (arg1 L) (- (arg2 L) 1)))))))
-(make-exptDev '(^ 1 2))
+(define (make-exptDev L v )(if(or (number? (car L)) (number? (car(cdr L)))) (list 0) (if(= (arg2 L) 0) (list 0) (if(= (arg2 L) 1) (list (deriv (arg1 L) v)) (list '*  (arg2 L) (list '^ (arg1 L) (- (arg2 L) 1)))))))
+;;; derivative code
+
+;deriv: ArithExp * VarExp -> ArithExp
+
+(define (deriv exp var)
+  (cond ((number? exp) 0)
+        ((variable? exp)
+         (if (variable=? exp var) 1 0))
+        ((expt? exp) (list '* (make-exptDev exp var) (deriv (arg1 exp) var)))
+        ((sum? exp) 
+         (make-sum (deriv (arg1 exp) var)
+                   (deriv (arg2 exp) var)))
+        ((product? exp)
+         (make-sum (make-product (arg1 exp) (deriv (arg2 exp) var))
+                   (make-product (arg2 exp) (deriv (arg1 exp) var))))
+        (else (error 'deriv "Unexpected Input, not an ArithExp"))))
+
+
+(deriv '(* (^ x 100) x) 'y)
+;#4
 
