@@ -25,6 +25,8 @@
 ;(filter-by number? '(12 3 a b '(a b c)))
 ;(filter-by symbol? '(12 3 a b '(a b c)))
 ;(filter-by list? '(12 3 a b '(a b c)))
+
+(filter-by number? '(a b c 4))
 (define (find-less n nums)
   (cond ((null? nums) '())
         ((< (car (filter-by number? nums)) n) (cons (car (filter-by number? nums)) (find-less n (cdr (filter-by number? nums)))))
