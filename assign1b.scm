@@ -38,7 +38,7 @@
 ; (eq? (sum? '3) #f)
 
 ; make-sum: ArithExp * ArithExp -> SumExp
-(define (make-sum e1 e2) (list '+ e1 e2))
+(define (make-sum e1 e2) (cond ((and (number? e1) (number? e2))  (+ e1 e2)) ((and  (number? e1) (= 0 e1))  e2) ((and  (number? e2) (= 0 e2)) e1)   (else (list '+ e1 e2))))
 
 ; (equal? (make-sum 2 3) '(+ 2 3))
 
@@ -48,11 +48,11 @@
 ; product?: Any -> Bool
 (define (product? a) (and (pair? a) (eq? (car a) '*)))
 
-; (eq? (product? '(* 2 3)) #t)
+; (eq? (product? '(* 2 3)) #t)   
 ; (eq? (product? '3) #f)
 
 ; make-sum: ArithExp * ArithExp -> ProductExp
-(define (make-product e1 e2) (list '* e1 e2))
+(define (make-product e1 e2) (cond ((and (number? e1) (number? e2)) (* e1 e2)) ((and (number? e1) (= e1 0))  0) ((and (number? e2) (= e2 0)) 0) ((and (number? e1) (= e1 1)) e2) ((and (number? e2) (= e2 1)) e1)  (else (list '* e1 e2)))) 
 
 ; (equal? (make-product 2 3) '(* 2 3))
 
@@ -74,7 +74,7 @@
 
 
 ;make-expr: arithExp * natutalNumber -> arithExp
-(define (make-expt e n) (cons '^ (append (list e) (list n))))
+(define (make-expt e n)(cond ((= n 0) 1) ((= n 1) e) (else(cons '^ (append (list e) (list n))))))
 (make-expt '(* x 5) 2)
 ;expt? arthimExp-> Bool a function to see if a arthimac expression is in a correct form
 (define (expt? e) (and (pair? e) (eq? (car e) '^)))
@@ -88,7 +88,7 @@
   (cond ((number? exp) 0)
         ((variable? exp)
          (if (variable=? exp var) 1 0))
-        ((expt? exp) (list '* (make-exptDev exp var) (deriv (arg1 exp) var)))
+        ((expt? exp) (make-product (make-exptDev exp var) (deriv (arg1 exp) var))) 
         ((sum? exp) 
          (make-sum (deriv (arg1 exp) var)
                    (deriv (arg2 exp) var)))
@@ -98,6 +98,26 @@
         (else (error 'deriv "Unexpected Input, not an ArithExp"))))
 
 
-(deriv '(* (^ x 100) x) 'y)
-;#4
+(deriv '(* (^ x 100) (* 5 x )) 'x)
+;#4 additional changes for simplification of deriv function
 
+;#5 integral that has inputs exp and var, where exp is an extended arithmetic expression and var is a variable expression.
+; arthExp var -> arithExp
+
+;List->bool tells if a list is empty or not, a empty list corresponds to zero polynomial and non empty is a non zero polynomial
+(define (zero-poly L) (if(null? L ) #t #f))
+
+;constant->list, if constant is zero then returns the empty list, else gives a list with the single element constant
+(define (poly<-const c)(if(= c 0) '() (list c)))
+
+(define (shift-left L) (cons 0 L))
+
+(define (shift-right L) (cdr L))
+
+(define (const-coeff L ) (car L) )
+
+(define (add-const-poly P c) (list '+ P c))
+
+(define (scale-poly P c) (list '+ P c))
+ 
+(define (add-poly P1 P2) (list '+ (+ (const-coeff P1) (const-coeff P2)) (list '+ (shift-left(shift-right P1)) (shift-right P2))))
