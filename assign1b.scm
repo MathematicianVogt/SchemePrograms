@@ -1,3 +1,4 @@
+;Author Ryan Vogt
 ;#1 a merge function that takes two listes already ordered and combines them in such a way that the result is ordered
 ;carList function, takes an element and appends it to the end of a given list, element, list -> list
 (define (carList carL FL) (append FL (list carL)))
@@ -14,7 +15,7 @@
 ;merge-sort list->list takes a list that is not ordered and orders it in acending order by mergesort algorith
 ;takes advatage of odd and even element functions to divide lists and sort them on the fly
 (define (merge-sort L ) (if(null? L ) L (if(null?(cdr L )) L ( merge (merge-sort (oddElements L )) (merge-sort (evenElements L))))))
-(merge-sort '(5 632 6 212 4 5 3 5 7 1 7 1 1 1))
+;(merge-sort '(5 632 6 212 4 5 3 5 7 1 7 1 1 1))
 ;#3 furthering the deriv function in class to also accept power functions arthExp var -> list
 ; variable?: Any -> Bool
 (define variable? symbol?)
@@ -75,7 +76,7 @@
 
 ;make-expr: arithExp * natutalNumber -> arithExp
 (define (make-expt e n)(cond ((= n 0) 1) ((= n 1) e) (else(cons '^ (append (list e) (list n))))))
-(make-expt '(* x 5) 2)
+;(make-expt '(* x 5) 2)
 ;expt? arthimExp-> Bool a function to see if a arthimac expression is in a correct form
 (define (expt? e) (and (pair? e) (eq? (car e) '^)))
 ;make-expt arithExp->arithExp takes a power function and differentiates it. 
@@ -98,26 +99,49 @@
         (else (error 'deriv "Unexpected Input, not an ArithExp"))))
 
 
-(deriv '(* (^ x 100) (* 5 x )) 'x)
+;(deriv '(* (^ x 100) (* 5 x )) 'x)
 ;#4 additional changes for simplification of deriv function
 
 ;#5 integral that has inputs exp and var, where exp is an extended arithmetic expression and var is a variable expression.
 ; arthExp var -> arithExp
 
 ;List->bool tells if a list is empty or not, a empty list corresponds to zero polynomial and non empty is a non zero polynomial
-(define (zero-poly L) (if(null? L ) #t #f))
+(define (zero-poly? L) (null? L))
 
 ;constant->list, if constant is zero then returns the empty list, else gives a list with the single element constant
 (define (poly<-const c)(if(= c 0) '() (list c)))
+;shifts a polynomial expression to the left
+(define (shift-left L)(if(null? L) '() (cons 0 L)))
+;shifts a polynomial expression to the right
+(define (shift-right L) (if(null? L) '() (cdr L)))
+;returns the constant coefficent assosciated with a polynomial
+(define (const-coeff L )(if(null? L) '() (car L) ))
 
-(define (shift-left L) (cons 0 L))
+(define (add-const-poly P c) (sumLists P (list c)))
+; P c -> cP scales a polynomial by a factor of c
+(define (scale-poly P c) (multiList P c '()))
 
-(define (shift-right L) (cdr L))
+;helper function to help aid making a polynomial be multipled by a constant
+(define (multiList L c FL) (cond ((= c 0) '()) ((null? L) FL) (else(multiList (cdr L) c (append FL (list (* (car L ) c)))))))  
 
-(define (const-coeff L ) (car L) )
-
-(define (add-const-poly P c) (list '+ P c))
-
-(define (scale-poly P c) (list '+ P c))
- 
-(define (add-poly P1 P2) (list '+ (+ (const-coeff P1) (const-coeff P2)) (list '+ (shift-left(shift-right P1)) (shift-right P2))))
+;code to take two lists and add them list by list l1 l2-> sumedList
+(define (sumLists l1 l2) (cond ((null? l1) l2) ((null? l2) l1) (else( finalSumList l1 l2 '()))))
+;helper function for sumLists, l1 l2 FL -> sumedList
+(define (finalSumList l1 l2 FL) (cond ((null? l1) (append FL l2)) ((null? l2) (append FL l1)) (else ( finalSumList (cdr l1) (cdr l2) (append FL (list (+ (car l1) (car l2)))))))) 
+ ;sums two lists together into one list                          
+(define (add-poly p1 p2) (sumLists p1 p2))
+;multiply two polynomials to get a list result
+(define (mult-poly p1 p2) (first-multi p1 p2 '()))
+;multiply helper function to help main multiply function
+(define (first-multi p1 p2 FL) (cond ((null? p1) (sumLists FL p2)) ((null? p2) (sumLists FL p1)) (else(multipling-poly (cdr p1) p2 (scale-poly p2 (car p1)) 1 ))))
+;multiply helper function to help main multiply function
+(define (multipling-poly p1 p2 FL n) (cond ((null? p1) FL) (else(multipling-poly (cdr p1) p2 (sumLists FL (addZeros (scale-poly p2 (car p1)) n)) (+ n 1)))))
+;adds n 0's to the front of a list
+(define (addZeros L n) (cond ((= n 0 ) L ) (else(addZeros (cons 0 L ) (- n 1)))))
+; returns the length of a list as a number
+(define (len L n) (cond ((null? L) n) (else (len (cdr L ) (+ n 1))))) 
+;(mult-poly '(1 2 1) '(1 1 1))
+(define (expt-poly P n) (cond ((= n 0) '()) (else (mult-poly P (expt-poly P (- n 1)))))) 
+;issues with this function
+(define (poly<-exp L n FL) (cond ((null? L ) FL) (else(poly<-exp (cdr L ) (+ n 1) (list FL '+ (list '* (car L) (make-expt 'x n) ))))))  
+;cant make exp<-poly without previous function and cant complete program
