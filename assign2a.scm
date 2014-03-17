@@ -46,9 +46,13 @@
 ; (terminal? ''+)
 ; (not (terminal? 'E))
 
-;filter by method written to get a set of rules for a specific variable. predicate list-> list
-(define (filter-by p L) (filtering p L '()))
-(define (filtering p L finalList) (if(null? L ) finalList (if(p (car L) ) (filtering p (cdr L) (append finalList (list (car L)))) (filtering p (cdr L) finalList))))
+
 ;#2
+;get rules method written to get a set of rules for a specific variable. variable name list-> list
+(define (getRules rule L finalRuleList) (if(null? L) finalRuleList (if(equal? (car (car L)) rule) (getRules rule (cdr L) (append (list (car L)) finalRuleList)) (getRules rule (cdr L) finalRuleList))))
 (define (first3 grammer alpha seen) (first3Helper grammer alpha seen '()))
-(define (first3Helper grammer alpha seen finalList) (if(null? alpha) '(()) (if(terminal? alpha) (append (list (car alpha)) finalList)
+(define (first3Helper grammer alpha seen finalList) (if(null? alpha) (union finalList '()) (if(terminal? (car alpha)) (union (list (car alpha)) finalList) (if(containsEpsilon? (getRules (car alpha) grammer '())) (first3Helper grammer (cdr alpha) seen finalList) (firstvar3Helper grammer (getRules (car alpha) grammer '()) seen '())))))
+;(define (first-var3 grammer rules seen) (firstvar3Helper grammer rules seen '()))
+(define (firstvar3Helper grammer rules seen finalList) (if(null? rules) finalList (if(seen? (car rules) seen) (firstvar3Helper grammer (cdr rules) seen finalList) (firstvar3Helper grammer (cdr rules) (cons (car rules) seen) (append (rule-rhs (car rules)) finalList )))))
+(define (seen? specificRule ruleList) (if(null? ruleList) #f (if(equal? specificRule (car ruleList)) #t (seen? specificRule (cdr ruleList)))))
+(define (containsEpsilon? L) (if(null? L) #f (if(equal? (car L) '()) #t (containsEpsilon? (cdr L)))))
