@@ -3,7 +3,7 @@
 (define (union set1 set2) (unionHelp set1 (append '() set2)))
 ;A helperfunction for union function to actually compute the union of two sets
 (define (unionHelp set1 finalSet) (if(null? set1) finalSet (if(member (car set1) finalSet) (unionHelp (cdr set1) finalSet) (unionHelp (cdr set1) (append (list(car set1)) finalSet)))))
-(union '(1 2 3 4) '(2 4 5 7 6 3))
+;(union '(1 2 3 4) '(2 4 5 7 6 3))
 ;Given code
 ; Terminals are quoted.
 ; A rule A -> X1 ... Xn is written (A (X1 ... Xn))
@@ -50,9 +50,39 @@
 ;#2
 ;get rules method written to get a set of rules for a specific variable. variable name list-> list
 (define (getRules rule L finalRuleList) (if(null? L) finalRuleList (if(equal? (car (car L)) rule) (getRules rule (cdr L) (append (list (car L)) finalRuleList)) (getRules rule (cdr L) finalRuleList))))
-(define (first3 grammer alpha seen) (first3Helper grammer alpha seen '()))
-(define (first3Helper grammer alpha seen finalList) (if(null? alpha) (union finalList '()) (if(terminal? (car alpha)) (union (list (car alpha)) finalList) (if(containsEpsilon? (getRules (car alpha) grammer '())) (first3Helper grammer (cdr alpha) seen finalList) (firstvar3Helper grammer (getRules (car alpha) grammer '()) seen '())))))
-;(define (first-var3 grammer rules seen) (firstvar3Helper grammer rules seen '()))
-(define (firstvar3Helper grammer rules seen finalList) (if(null? rules) finalList (if(seen? (car rules) seen) (firstvar3Helper grammer (cdr rules) seen finalList) (firstvar3Helper grammer (cdr rules) (cons (car rules) seen) (append (rule-rhs (car rules)) finalList )))))
+;seen? a method that takes a rule and a rulelist and sees if if the rule is in the rule list list list-> boolean
 (define (seen? specificRule ruleList) (if(null? ruleList) #f (if(equal? specificRule (car ruleList)) #t (seen? specificRule (cdr ruleList)))))
+;containsEpsilon? Sees if a list contains epsilon list-> boolean
 (define (containsEpsilon? L) (if(null? L) #f (if(equal? (car L) '()) #t (containsEpsilon? (cdr L)))))
+;get the right handed rules for a list that share the same left handed rules
+(define (getRightRulesForList rule FinalList) (if(null? rule) FinalList (getRightRulesForList (cdr rule) (append (list(rule-rhs (car rule))) FinalList))))
+;first 3 grammar alpha seen - > list of terminals
+(define (first3 grammar alhpa seen) (first3Helper grammar alpha seen '()))
+;helper function for first 3 actually goes through if a terminal is found add to the list done, if not expand variables until terminals are found for all possibilites
+(define(first3Helper grammar alpha seen finalList)
+  (cond
+    ((null? alpha) (union finalList '())) 
+    ((containsEpsilon? (getRightRulesForList (getRules (car alpha) grammar '()) '() )) (first3Helper grammar (cdr alpha) (cons (car alpha) seen) finalList))
+    ((seen? (car alpha) seen) (first3Helper grammar (cdr alpha) seen finalList))
+    ((terminal? (car alpha)) (union (car alpha) finalList))
+    ((variable? (car alpha)) (first-var3 grammar (getRightRulesForList (car alpha) '()))
+    )))
+
+; expands varaibles grammar rules seen -> terminals from expansions
+(define (first-var3 grammar rules seen) (firstvar3Helper grammar rules seen '()))
+(define (firstvar3Heleper grammar rules seen finalList) (if(null? rules) finalList 
+                                                           (if(terminal? (car(car rules))) (union (car(car rules)) finalList)
+                                                             (firstvar3Helper grammar (getRightRulesForList (car(car rules))) (cons (car(car rules))  seen)  finalList))))
+;takes a grammar and alpha returns a list of terminals in regards to first non epsilon term of alpha
+(define (first-alpha grammar alpha) (first3 grammar alpha '()))
+                                       
+
+;#3
+
+
+
+;was so confused on this assginment, didnt know how the pieces went together and couldnt think how to handle everything all at once
+;terminal function didnt make sense to me and other things as well, overall lost and confused, cant even do number 3 because no idea what it means
+;#1 was trivial and the others were just impossible for me.
+
+
