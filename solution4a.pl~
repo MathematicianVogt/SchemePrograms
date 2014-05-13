@@ -1,0 +1,36 @@
+male(tony).
+male(ethan).
+male(chris).
+male(ben).
+male(nathan).
+
+female(sim).
+female(helen).
+female(sophie).
+female(olivia).
+
+parents(helen, sim, tony).
+parents(chris, sim, tony).
+parents(ben, sim, tony).
+parents(sophie, helen, ethan).
+parents(olivia, helen, ethan).
+parents(nathan, helen, ethan).
+
+
+quicksort([], []).
+quicksort([H | T], S) :-
+   partition(T, H, Less, Same, Greater),
+   quicksort(Less, SLess),
+   quicksort(Greater, SGreater),
+   append(SLess, [H | Same], SGreater, S).
+
+append([], L, L).
+append([H | T], L, [H | A]) :- append(T, L, A).
+
+append(L1, L2, L3, A) :- append(L2, L3, L23), append(L1, L23, A).
+
+
+d(X, X, 1).
+d(C, X, 0) :- atomic(C), C \= X.
+d(U + V, X, DU + DV) :- d(U, X, DU), d(V, X, DV).
+d(U * V, X, U * DV + V * DU) :- d(U, X, DU), d(V, X, DV).
